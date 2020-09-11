@@ -1,10 +1,14 @@
 var lastFocused;
+var currentTimeout;
 
 function detectFocus() {
     const element = document.activeElement;
-    if(element === lastFocused) { return; }
 
     if(isScanSupported(element)) {
+        if (currentTimeout) {
+            clearTimeout(currentTimeout);
+            currentTimeout = 0;
+        }
         lastFocused = element;
         removeButton();
         const overlayButton = createButton();
@@ -19,8 +23,16 @@ function removeButton() {
     }
 }
 
+function isTextInput(element) {
+    return (element.nodeName === 'INPUT' && element.type === "text");
+}
+
+function isTextArea(element) {
+    return element.nodeName === "TEXTAREA";
+}
+
 function isScanSupported(element) {
-    return (element.nodeName === 'INPUT' && element.type === "text") || element.nodeName === "TEXTAREA"
+    return isTextInput(element) || isTextArea(element)
 }
 
 function createButton() {
@@ -68,4 +80,4 @@ chrome.runtime.onMessage.addListener(function(data) {
 });
 
 window.addEventListener('focus', detectFocus, true);
-//window.addEventListener('blur', removeButton, true);
+window.addEventListener('blur', () => currentTimeout = setTimeout(removeButton, 20), true);
