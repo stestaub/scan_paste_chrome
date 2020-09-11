@@ -55,20 +55,28 @@ function getRandomToken() {
     return hex;
 }
 
-chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-  console.log(sender.tab ?
-      "from a content script:" + sender.tab.url :
-      "from the extension");
+function sendResultToActiveTab(result) {
+    chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
+        if(tabs[0]) {
+            chrome.tabs.sendMessage(tabs[0].id, result);
+        }
+    });
+}
 
+chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
   if (request.action === "start_scan") {
+      sendResponse({result: "hello"});
       chrome.storage.sync.get('userid', function(items) {
           g_userId = items.userid;
-          console.log("now start scanning");
+          //console.log("now start scanning");
           if(g_userId) {
               g_currentRequest = getRandomToken();
-              sendResponse({result: "hello"});
-              //listenToRquestChanges(g_currentRequest, sendResponse);
-              //createRequwst(g_currentRequest);
+              //sendResponse({result: "hello"});
+              listenToRquestChanges(g_currentRequest, sendResultToActiveTab);
+              createRequwst(g_currentRequest, g_userId);
+          }
+          else {
+              sendResultToActiveTab({error: "no user id found"});
           }
       });
   }

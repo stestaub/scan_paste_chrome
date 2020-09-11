@@ -5,6 +5,7 @@ function detectFocus() {
     if(element === lastFocused) { return; }
 
     if(element.nodeName === 'INPUT') {
+        lastFocused = element;
         const oldButton = document.getElementById("scan-button");
         if(oldButton) {
             oldButton.remove();
@@ -28,21 +29,18 @@ function createButton() {
 }
 
 function scan() {
-    chrome.runtime.sendMessage({action: "start_scan"}, function(response) {
+    chrome.extension.sendMessage({action: "start_scan"}, function(response) {
         if(chrome.runtime.lastError) {
-            setTimeout(scan, 500);
+            //setTimeout(scan, 500);
             console.log("error trying to send message to background. Try again in 500ms");
         } else {
             console.log("received callback");
-            lastFocused = response.result;
         }
     });
 }
 
-function insertDataU(data) {
-    if(lastFocused && lastFocused.nodeName === "INPUT") {
-        lastFocused.value = data;
-    }
-}
+chrome.runtime.onMessage.addListener(function(data) {
+    lastFocused.value = data.result;
+});
 
 window.addEventListener('focus', detectFocus, true);
