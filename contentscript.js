@@ -80,4 +80,4 @@ chrome.runtime.onMessage.addListener(function(data) {
 });
 
 window.addEventListener('focus', detectFocus, true);
-window.addEventListener('blur', () => currentTimeout = setTimeout(removeButton, 20), true);
+window.addEventListener('blur', () => currentTimeout = setTimeout(removeButton, 200), true);
