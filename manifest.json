@@ -4,10 +4,10 @@
   "description": "Scan a text with your Smartphone to paste it in textfield",
   "version": "2.1",
   "icons": {
-    "128": "firebase.png"
+    "128": "scan-icon.png"
   },
   "browser_action": {
-    "default_icon": "firebase.png",
+    "default_icon": "scan-icon.png",
     "default_popup": "credentials.html"
   },
   "permissions":[

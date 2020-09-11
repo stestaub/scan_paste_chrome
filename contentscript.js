@@ -68,4 +68,4 @@ chrome.runtime.onMessage.addListener(function(data) {
 });
 
 window.addEventListener('focus', detectFocus, true);
-window.addEventListener('blur', removeButton, true);
+//window.addEventListener('blur', removeButton, true);

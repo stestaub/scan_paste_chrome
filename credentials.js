@@ -4,6 +4,80 @@ var config = {
   databaseURL: "https://nodal-algebra-767.firebaseio.com/",
   projectId: "nodal-algebra-767"
 };
+
+var browserMap = {
+  options: [],
+  header: [navigator.platform, navigator.userAgent, navigator.appVersion, navigator.vendor, window.opera],
+  dataos: [
+    { name: 'Windows Phone', value: 'Windows Phone', version: 'OS' },
+    { name: 'Windows', value: 'Win', version: 'NT' },
+    { name: 'iPhone', value: 'iPhone', version: 'OS' },
+    { name: 'iPad', value: 'iPad', version: 'OS' },
+    { name: 'Kindle', value: 'Silk', version: 'Silk' },
+    { name: 'Android', value: 'Android', version: 'Android' },
+    { name: 'PlayBook', value: 'PlayBook', version: 'OS' },
+    { name: 'BlackBerry', value: 'BlackBerry', version: '/' },
+    { name: 'Macintosh', value: 'Mac', version: 'OS X' },
+    { name: 'Linux', value: 'Linux', version: 'rv' },
+    { name: 'Palm', value: 'Palm', version: 'PalmOS' }
+  ],
+  databrowser: [
+    { name: 'Chrome', value: 'Chrome', version: 'Chrome' },
+    { name: 'Firefox', value: 'Firefox', version: 'Firefox' },
+    { name: 'Safari', value: 'Safari', version: 'Version' },
+    { name: 'Internet Explorer', value: 'MSIE', version: 'MSIE' },
+    { name: 'Opera', value: 'Opera', version: 'Opera' },
+    { name: 'BlackBerry', value: 'CLDC', version: 'CLDC' },
+    { name: 'Mozilla', value: 'Mozilla', version: 'Mozilla' }
+  ],
+  init: function () {
+    var agent = this.header.join(' '),
+        os = this.matchItem(agent, this.dataos),
+        browser = this.matchItem(agent, this.databrowser);
+
+    return { os: os, browser: browser };
+  },
+  matchItem: function (string, data) {
+    var i = 0,
+        j = 0,
+        html = '',
+        regex,
+        regexv,
+        match,
+        matches,
+        version;
+
+    for (i = 0; i < data.length; i += 1) {
+      regex = new RegExp(data[i].value, 'i');
+      match = regex.test(string);
+      if (match) {
+        regexv = new RegExp(data[i].version + '[- /:;]([\\d._]+)', 'i');
+        matches = string.match(regexv);
+        version = '';
+        if (matches) { if (matches[1]) { matches = matches[1]; } }
+        if (matches) {
+          matches = matches.split(/[._]+/);
+          for (j = 0; j < matches.length; j += 1) {
+            if (j === 0) {
+              version += matches[j] + '.';
+            } else {
+              version += matches[j];
+            }
+          }
+        } else {
+          version = '0';
+        }
+        return {
+          name: data[i].name,
+          version: parseFloat(version)
+        };
+      }
+    }
+    return { name: 'unknown', version: 0 };
+  }
+};
+
+
 firebase.initializeApp(config);
 var token;
 /**
@@ -22,80 +96,57 @@ var token;
  */
 function initApp() {
   chrome.storage.sync.get('userid', function(items) {
-    let userid = items.userid;
-    if (userid) {
-      setChannel(userid);
+    let channelId = items.userid;
+    if (channelId) {
+      setChannel(channelId);
     } else {
-      userid = getRandomToken();
-      chrome.storage.sync.set({userid: userid}, function() {
-        setChannel(userid);
+      channelId = getRandomToken();
+      chrome.storage.sync.set({userid: channelId}, function() {
+        setChannel(channelId);
       });
     }
 
-    function setChannel(userId) {
-      const starCountRef = firebase.database().ref('/channels/' + userid);
+    function setChannel(channelId) {
+      const starCountRef = firebase.database().ref('/channels/' + channelId);
       starCountRef.on('value', function (snapshot) {
         if(snapshot.val()) {
           document.getElementById("qrcode").remove();
-          initForScan(userId);
+          showInfo(snapshot.val());
         }
         else {
-          initForSetup(userId)
+          initForSetup(channelId);
+          removeStatus();
         }
       });
     }
 
-    function initForScan(userId) {
-      updateScanButton(userId);
+    function removeStatus() {
+      document.getElementById("status").innerText = "";
     }
 
-    function initForSetup(userId) {
+    function showInfo(data) {
+      let name = "Unknown";
+      if(data.device_name) {
+        name = data.device_name
+      }
+      document.getElementById("status").innerText = "Connected with: " + name;
+    }
+
+    function initForSetup(channelId) {
       var qrcode = new QRCode(document.getElementById("qrcode"), {
         width: 300,
         height: 300
       });
-
-      qrcode.makeCode(userId);
+      const qrData = deviceInfo();
+      qrData["channel"] = channelId;
+      qrcode.makeCode(JSON.stringify(qrData));
     }
 
-    function updateScanButton(userId) {
-      document.getElementById("scan").onclick = () => {
-        const requestId = getRandomToken();
-        createRequwst(requestId, userId).then(() => { listenToRquestChanges(requestId)});
-      };
-    }
-
-    function listenToRquestChanges(requestId) {
-      firebase.database().ref("/request/" + requestId + "/result").on('value', function (snapshot) {
-        if(snapshot.val()) {
-          copyValue(snapshot.val());
-          dropRequest(requestId);
-        }
-      });
-    }
-
-    function createRequwst(requestId, userId) {
-      const updates = {};
-      updates['/request/' + requestId] = {channel_id: userId};
-      return firebase.database().ref().update(updates);
-    }
-
-    function dropRequest(requestId) {
-      firebase.database().ref("/request/" + requestId).remove();
-    }
-
-    function copyValue(value) {
-      const textBox = document.getElementById("scan-result");
-      textBox.value = value;
-      textBox.focus();
-      textBox.select();
-      document.execCommand("copy");
-      document.getElementById("message").innerText = "Text wurde in die Zwischenablage kopiert";
+    function deviceInfo() {
+      return browserMap.init();
     }
 
   });
-
-
 }
 
 
@@ -110,6 +161,8 @@ function getRandomToken() {
   // E.g. db18458e2782b2b77e36769c569e263a53885a9944dd0a861e5064eac16f1a
   return hex;
 }
+
+
 
 
 window.onload = function() {
