@@ -4,28 +4,52 @@ function detectFocus() {
     const element = document.activeElement;
     if(element === lastFocused) { return; }
 
-    if(element.nodeName === 'INPUT') {
+    if(isScanSupported(element)) {
         lastFocused = element;
-        const oldButton = document.getElementById("scan-button");
-        if(oldButton) {
-            oldButton.remove();
-        }
+        removeButton();
         const overlayButton = createButton();
-        element.parentNode.insertBefore(overlayButton, element.nextSibling);
+        document.body.append(overlayButton);
     }
 }
 
+function removeButton() {
+    const oldButton = document.getElementById("scan-button");
+    if(oldButton) {
+        oldButton.remove();
+    }
+}
+
+function isScanSupported(element) {
+    return (element.nodeName === 'INPUT' && element.type === "text") || element.nodeName === "TEXTAREA"
+}
+
 function createButton() {
+    const img = document.createElement("img");
+    img.src = chrome.runtime.getURL("scan-icon.png");
+    img.setAttribute("width", "20px");
+
     const overlayButton = document.createElement("button");
-    overlayButton.innerText = "C";
     overlayButton.id = "scan-button";
+    overlayButton.className = "scan_n_paste";
+    overlayButton.appendChild(img);
     overlayButton.onclick = (e) => {
         e.stopPropagation();
         e.preventDefault();
         scan();
-    }
+    };
+
+    position(overlayButton);
 
     return overlayButton;
+}
+
+function position(elem) {
+    const anchor = document.activeElement;
+    const buttonWidth = 22;
+    let anchorCoords = anchor.getBoundingClientRect();
+    elem.style.left = anchorCoords.left + anchor.offsetWidth - buttonWidth + "px";
+    elem.style.top = anchorCoords.top + "px";
+
 }
 
 function scan() {
@@ -44,3 +68,4 @@ chrome.runtime.onMessage.addListener(function(data) {
 });
 
 window.addEventListener('focus', detectFocus, true);
+window.addEventListener('blur', removeButton, true);
