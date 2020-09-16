@@ -6,8 +6,11 @@ var config = {
   projectId: "nodal-algebra-767"
 };
 firebase.initializeApp(config);
-var g_channelId;
-var g_currentRequest;
+firebase.auth().signInAnonymously();
+
+let g_channelId;
+let g_currentRequest;
+
 /**
  * initApp handles setting up the Firebase context and registering
  * callbacks for the auth status.
@@ -66,9 +69,9 @@ function sendResultToActiveTab(result) {
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
   if (request.action === "start_scan") {
       sendResponse({result: "hello"});
-      chrome.storage.sync.get('channelId', function(items) {
-          g_channelId = items.channelId;
-          //console.log("now start scanning");
+      firebase.auth().onAuthStateChanged(function(user) {
+          g_channelId = user.uid;
+
           if(g_channelId) {
               g_currentRequest = getRandomToken();
               //sendResponse({result: "hello"});

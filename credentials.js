@@ -83,6 +83,57 @@ const browserMap = {
 
 
 firebase.initializeApp(config);
+firebase.auth().signInAnonymously().catch(function(error) {
+    document.getElementById("status").innerText = error.message;
+});
+
+function setChannel(channelId) {
+    const starCountRef = firebase.database().ref('/channels/' + channelId);
+    starCountRef.on('value', function (snapshot) {
+        if(snapshot.val()) {
+            document.getElementById("qrcode").remove();
+            showInfo(snapshot.val());
+        }
+        else {
+            initForSetup(channelId);
+            removeStatus();
+        }
+    });
+}
+
+function removeStatus() {
+    document.getElementById("status").innerText = "";
+}
+
+function showInfo(data) {
+    let name = "Unknown";
+    if(data.device_name) {
+        name = data.device_name
+    }
+    document.getElementById("status").innerText = "Connected with: " + name;
+
+}
+
+function initForSetup(channelId) {
+    const qrcode = new QRCode(document.getElementById("qrcode"), {
+        width: 300,
+        height: 300
+    });
+    const qrData = deviceInfo();
+    qrData["channel"] = channelId;
+    qrcode.makeCode(JSON.stringify(qrData));
+    document.getElementById("qrcode").title = "";
+}
+
+function deleteChannel(channelId) {
+    firebase.database().ref('/channels/' + channelId).remove();
+}
+
+function deviceInfo() {
+    return browserMap.init();
+}
+
+
 /**
  * initApp handles setting up the Firebase context and registering
  * callbacks for the auth status.
@@ -98,76 +149,16 @@ firebase.initializeApp(config);
  * When signed in, we also authenticate to the Firebase Realtime Database.
  */
 function initApp() {
-  chrome.storage.sync.get('channelId', function(items) {
-    let channelId = items.channelId;
-    if (channelId) {
-      setChannel(channelId);
-    } else {
-      channelId = getRandomToken();
-      chrome.storage.sync.set({channelId: channelId}, function() {
-        setChannel(channelId);
-      });
-    }
-
-    function setChannel(channelId) {
-      const starCountRef = firebase.database().ref('/channels/' + channelId);
-      starCountRef.on('value', function (snapshot) {
-        if(snapshot.val()) {
-          document.getElementById("qrcode").remove();
-          showInfo(snapshot.val());
+    firebase.auth().onAuthStateChanged(function(user) {
+        if (user) {
+            console.log(JSON.stringify(user));
+            setChannel(user.uid);
         }
         else {
-          initForSetup(channelId);
-          removeStatus();
+            document.getElementById("status").innerText ="Error connecting to backend. Check your internet connection, or try again later";
         }
-      });
-    }
-
-    function removeStatus() {
-      document.getElementById("status").innerText = "";
-    }
-
-    function showInfo(data) {
-      let name = "Unknown";
-      if(data.device_name) {
-        name = data.device_name
-      }
-      document.getElementById("status").innerText = "Connected with: " + name;
-    }
-
-    function initForSetup(channelId) {
-      const qrcode = new QRCode(document.getElementById("qrcode"), {
-        width: 300,
-        height: 300
-      });
-      const qrData = deviceInfo();
-      qrData["channel"] = channelId;
-      qrcode.makeCode(JSON.stringify(qrData));
-      document.getElementById("qrcode").title = "";
-    }
-
-    function deviceInfo() {
-      return browserMap.init();
-    }
-
-  });
+    });
 }
-
-
-function getRandomToken() {
-  // E.g. 8 * 32 = 256 bits token
-  var randomPool = new Uint8Array(32);
-  crypto.getRandomValues(randomPool);
-  var hex = '';
-  for (var i = 0; i < randomPool.length; ++i) {
-    hex += randomPool[i].toString(16);
-  }
-  // E.g. db18458e2782b2b77e36769c569e263a53885a9944dd0a861e5064eac16f1a
-  return hex;
-}
-
-
-
 
 window.onload = function() {
   initApp();

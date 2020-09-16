@@ -1,5 +1,32 @@
-var lastFocused;
-var currentTimeout;
+let lastFocused;
+let currentTimeout;
+let currentButton;
+
+function getOffsetRect(el) {
+    let rect   = el.getBoundingClientRect();
+
+    // add window scroll position to get the offset position
+    let left   = rect.left   + window.scrollX;
+    let top    = rect.top    + window.scrollY;
+    let right  = rect.right  + window.scrollX;
+    let bottom = rect.bottom + window.scrollY;
+
+    // polyfill missing 'x' and 'y' rect properties not returned
+    // from getBoundingClientRect() by older browsers
+    let x;
+    if ( rect.x === undefined ) x = left;
+    else x = rect.x + window.scrollX;
+
+    let y;
+    if ( rect.y === undefined ) y = top;
+    else y = rect.y + window.scrollY;
+
+    // width and height are the same
+    let width  = rect.width;
+    let height = rect.height;
+
+    return { left, top, right, bottom, x, y, width, height };
+}
 
 function detectFocus() {
     const element = document.activeElement;
@@ -13,6 +40,7 @@ function detectFocus() {
         removeButton();
         const overlayButton = createButton();
         document.body.append(overlayButton);
+        currentButton = overlayButton;
     }
 }
 
@@ -24,7 +52,8 @@ function removeButton() {
 }
 
 function isTextInput(element) {
-    return (element.nodeName === 'INPUT' && element.type === "text");
+    return (element.nodeName === 'INPUT'
+        && element.type === "text");
 }
 
 function isTextArea(element) {
@@ -40,7 +69,7 @@ function createButton() {
     img.src = chrome.runtime.getURL("scan-icon.png");
     img.setAttribute("width", "20px");
     img.style.width = "20px";
-    img.style.height = "20px"
+    img.style.height = "20px";
 
     const overlayButton = document.createElement("button");
     overlayButton.id = "scan-button";
@@ -58,9 +87,10 @@ function createButton() {
 }
 
 function position(elem) {
+    if(!elem) { return; }
     const anchor = document.activeElement;
     const buttonWidth = 22;
-    let anchorCoords = anchor.getBoundingClientRect();
+    let anchorCoords = getOffsetRect(anchor);
     elem.style.left = anchorCoords.left + anchor.offsetWidth - buttonWidth + "px";
     elem.style.top = anchorCoords.top + "px";
 
@@ -83,3 +113,4 @@ chrome.runtime.onMessage.addListener(function(data) {
 
 window.addEventListener('focus', detectFocus, true);
 window.addEventListener('blur', () => currentTimeout = setTimeout(removeButton, 200), true);
+window.addEventListener('resize', () => position(currentButton));
