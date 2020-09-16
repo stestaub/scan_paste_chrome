@@ -92,7 +92,7 @@ function setChannel(channelId) {
     starCountRef.on('value', function (snapshot) {
         if(snapshot.val()) {
             document.getElementById("qrcode").remove();
-            showInfo(snapshot.val());
+            showInfo(snapshot.val(), channelId);
         }
         else {
             initForSetup(channelId);
@@ -102,15 +102,23 @@ function setChannel(channelId) {
 }
 
 function removeStatus() {
-    document.getElementById("status").innerText = "";
+    document.getElementById("status").innerHTML = "";
 }
 
-function showInfo(data) {
+function showInfo(data, channelId) {
     let name = "Unknown";
     if(data.device_name) {
         name = data.device_name
     }
-    document.getElementById("status").innerText = "Connected with: " + name;
+    let container = document.getElementById("status");
+    let infoString = document.createElement("span");
+    let removeButton = document.createElement("button");
+    removeButton.innerText = "Disconnect";
+    removeButton.onclick = () => deleteChannel(channelId);
+    infoString.innerText = "Connected with: " + name;
+    container.appendChild(infoString);
+    container.appendChild(removeButton);
+
 
 }
 
