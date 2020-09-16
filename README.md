@@ -1,12 +1,13 @@
-Firebase Auth w/ Google Sign-In in Chrome Extensions
+Scan'n'Paste Chrome Extension
 ====================================================
 
-This sample demonstrates how to authorize a user with Firebase in a Chrome extension using Google Sign-In and setup the Chrome extension to allow the use of the Realtime Database and Firebase Storage.
+This extension allows to connect the browser with the Android App "Scan'n'Paste". Once connected, scanning a text using OCR on
+the Smartphone and pasting it in a textfield on any webpage is as simple as one click.  
 
 Introduction
 ------------
 
-- [Read more about Firebase Auth](https://firebase.google.com/docs/auth/)
+
 
 Setting up this sample
 ---------------
@@ -86,7 +87,7 @@ The keys to using Firebase in a Chrome extension are:
  - Add the following content security policy to your `manifest.json` to allow importing the Firebase SDK and accessing the Realtime Database as well as Firebase Storage:
 
  ```javascript
- "content_security_policy":"script-src 'self' https://www.gstatic.com/ https://*.firebaseio.com https://www.googleapis.com; object-src 'self'"
+ "content_security_policy": "script-src 'self' https://www.gstatic.com/ https://*.firebaseio.com https://www.googleapis.com; object-src 'self'"
  ```
 
 

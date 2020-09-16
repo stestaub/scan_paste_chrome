@@ -6,7 +6,7 @@ var config = {
   projectId: "nodal-algebra-767"
 };
 firebase.initializeApp(config);
-var g_userId;
+var g_channelId;
 var g_currentRequest;
 /**
  * initApp handles setting up the Firebase context and registering
@@ -66,14 +66,14 @@ function sendResultToActiveTab(result) {
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
   if (request.action === "start_scan") {
       sendResponse({result: "hello"});
-      chrome.storage.sync.get('userid', function(items) {
-          g_userId = items.userid;
+      chrome.storage.sync.get('channelId', function(items) {
+          g_channelId = items.channelId;
           //console.log("now start scanning");
-          if(g_userId) {
+          if(g_channelId) {
               g_currentRequest = getRandomToken();
               //sendResponse({result: "hello"});
               listenToRquestChanges(g_currentRequest, sendResultToActiveTab);
-              createRequwst(g_currentRequest, g_userId);
+              createRequwst(g_currentRequest, g_channelId);
           }
           else {
               sendResultToActiveTab({error: "no user id found"});

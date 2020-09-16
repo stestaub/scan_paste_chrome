@@ -39,6 +39,8 @@ function createButton() {
     const img = document.createElement("img");
     img.src = chrome.runtime.getURL("scan-icon.png");
     img.setAttribute("width", "20px");
+    img.style.width = "20px";
+    img.style.height = "20px"
 
     const overlayButton = document.createElement("button");
     overlayButton.id = "scan-button";
