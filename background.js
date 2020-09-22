@@ -11,6 +11,14 @@ firebase.auth().signInAnonymously();
 let g_channelId;
 let g_currentRequest;
 
+let g_requestRef;
+
+function unsubscribePreviousRequest() {
+    if (g_requestRef) {
+        g_requestRef.off();
+    }
+}
+
 /**
  * initApp handles setting up the Firebase context and registering
  * callbacks for the auth status.
@@ -26,18 +34,24 @@ let g_currentRequest;
  * When signed in, we also authenticate to the Firebase Realtime Database.
  */
 
-function listenToRquestChanges(requestId, callback) {
-    firebase.database().ref("/request/" + requestId + "/result").on('value', function (snapshot) {
+function listenToRequestChanges(requestId, callback) {
+    unsubscribePreviousRequest();
+
+    g_requestRef = firebase.database().ref("/request/" + requestId + "/result");
+    g_requestRef.on('value', function (snapshot) {
         if(snapshot.val()) {
             callback({result: snapshot.val()});
+            g_requestRef.off();
             dropRequest(requestId);
         }
+    }, (err) => {
+        console.error(err.message);
     });
 }
 
 function createRequwst(requestId, userId) {
     const updates = {};
-    updates['/request/' + requestId] = {channel_id: userId};
+    updates['/request/' + requestId] = {channel_id: userId, created_at: new Date().toISOString()};
     return firebase.database().ref().update(updates);
 }
 
@@ -75,8 +89,9 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
           if(g_channelId) {
               g_currentRequest = getRandomToken();
               //sendResponse({result: "hello"});
-              listenToRquestChanges(g_currentRequest, sendResultToActiveTab);
-              createRequwst(g_currentRequest, g_channelId);
+              createRequwst(g_currentRequest, g_channelId).then(() => {
+                  listenToRequestChanges(g_currentRequest, sendResultToActiveTab);
+              });
           }
           else {
               sendResultToActiveTab({error: "no user id found"});
