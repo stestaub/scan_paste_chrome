@@ -2,12 +2,12 @@
   "manifest_version": 2,
   "name": "Scan'n'Paste",
   "description": "Scan a text with your Smartphone to paste it in textfield",
-  "version": "2.1",
+  "version": "1.0",
   "icons": {
-    "128": "scan-icon.png"
+    "128": "ic_launcher.png"
   },
   "browser_action": {
-    "default_icon": "scan-icon.png",
+    "default_icon": "ic_launcher.png",
     "default_popup": "credentials.html"
   },
   "permissions":[
