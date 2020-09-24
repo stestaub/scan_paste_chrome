@@ -22,16 +22,17 @@ body {
   margin: 0;
   padding: 5px;
 }
-h3 {
+h1 {
   background: url('ic_launcher_round.png') no-repeat;
   background-size: 40px;
   padding-left: 50px;
   line-height: 40px;
 }
+h3 {
+  padding-left: 20px;
+}
 
-.scan-n-paste-button {
+button {
   display: block;
-  position: absolute;;
-  top: 50px;
-  left: 50px;
+  margin-top: 20px;
 }

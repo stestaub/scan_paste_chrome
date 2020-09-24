@@ -1,0 +1,10 @@
+{
+  "extName": {
+    "message": "Scan'n'Paste",
+    "description": "Extension Name"
+  },
+  "extDescription": {
+    "message": "Text mit dem Handy scannen und direkt ins Textfeld einfügen.",
+    "description": "Description for this extension"
+  }
+}

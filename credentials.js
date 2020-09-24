@@ -5,6 +5,8 @@ const config = {
   projectId: "nodal-algebra-767"
 };
 
+let qr;
+
 const browserMap = {
   options: [],
   header: [navigator.platform, navigator.userAgent, navigator.appVersion, navigator.vendor, window.opera],
@@ -91,7 +93,7 @@ function setChannel(channelId) {
     const starCountRef = firebase.database().ref('/channels/' + channelId);
     starCountRef.on('value', function (snapshot) {
         if(snapshot.val()) {
-            document.getElementById("qrcode").remove();
+            document.getElementById("qrcode").style.display = "none";
             showInfo(snapshot.val(), channelId);
         }
         else {
@@ -105,6 +107,11 @@ function removeStatus() {
     document.getElementById("status").innerHTML = "";
 }
 
+function disconnect(channelId) {
+    deleteChannel(channelId);
+    initForSetup(channelId);
+}
+
 function showInfo(data, channelId) {
     let name = "Unknown";
     if(data.device_name) {
@@ -114,7 +121,7 @@ function showInfo(data, channelId) {
     let infoString = document.createElement("span");
     let removeButton = document.createElement("button");
     removeButton.innerText = "Disconnect";
-    removeButton.onclick = () => deleteChannel(channelId);
+    removeButton.onclick = () => disconnect(channelId);
     infoString.innerText = "Connected with: " + name;
     container.appendChild(infoString);
     container.appendChild(removeButton);
@@ -123,13 +130,10 @@ function showInfo(data, channelId) {
 }
 
 function initForSetup(channelId) {
-    const qrcode = new QRCode(document.getElementById("qrcode"), {
-        width: 300,
-        height: 300
-    });
+    document.getElementById("qrcode").style.display = "block";
     const qrData = deviceInfo();
     qrData["channel"] = channelId;
-    qrcode.makeCode(JSON.stringify(qrData));
+    qr.makeCode(JSON.stringify(qrData));
     document.getElementById("qrcode").title = "";
 }
 
@@ -157,9 +161,12 @@ function deviceInfo() {
  * When signed in, we also authenticate to the Firebase Realtime Database.
  */
 function initApp() {
+    qr = new QRCode(document.getElementById("qrcode"), {
+        width: 300,
+        height: 300
+    });
     firebase.auth().onAuthStateChanged(function(user) {
         if (user) {
-            console.log(JSON.stringify(user));
             setChannel(user.uid);
         }
         else {

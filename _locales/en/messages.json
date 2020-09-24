@@ -1,0 +1,10 @@
+{
+  "extName": {
+    "message": "Scan'n'Paste",
+    "description": "Extension Name"
+  },
+  "extDescription": {
+    "message": "Scan a text with your Smartphone to paste it in textfield",
+    "description": "Description for this extension"
+  }
+}

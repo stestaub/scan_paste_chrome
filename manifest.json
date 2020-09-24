@@ -1,8 +1,9 @@
 {
   "manifest_version": 2,
-  "name": "Scan'n'Paste",
-  "description": "Scan a text with your Smartphone to paste it in textfield",
+  "name": "__MSG_extName__",
+  "description": "__MSG_extDescription__",
   "version": "1.0",
+  "default_locale": "en",
   "icons": {
     "128": "ic_launcher.png"
   },

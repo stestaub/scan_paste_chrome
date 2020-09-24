@@ -74,6 +74,7 @@ function createButton() {
     const overlayButton = document.createElement("button");
     overlayButton.id = "scan-button";
     overlayButton.className = "scan_n_paste";
+    overlayButton.title = "Scan text with your phone";
     overlayButton.appendChild(img);
     overlayButton.onclick = (e) => {
         e.stopPropagation();
